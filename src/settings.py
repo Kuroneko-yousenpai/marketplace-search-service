@@ -24,7 +24,13 @@ class Settings(BaseSettings):
         default="localhost:9092",
         validation_alias=AliasChoices("KAFKA_BROKERS", "KAFKA_BOOTSTRAP_SERVERS"),
     )
-    kafka_topic_ads: str = "ads"
+    # LMS hands ad-service the per-student topic as KAFKA_TOPIC_MARKETPLACE_ADS
+    # (with KAFKA_TOPIC_ADS=ads, a topic shared by everyone), but search-service
+    # gets it as KAFKA_TOPIC_ADS. Prefer the specific one so both sides meet.
+    kafka_topic_ads: str = Field(
+        default="ads",
+        validation_alias=AliasChoices("KAFKA_TOPIC_MARKETPLACE_ADS", "KAFKA_TOPIC_ADS"),
+    )
     # Empty means derived from the topic (see below).
     kafka_consumer_group: str = ""
     ad_service_url: str = "http://localhost:8002"
