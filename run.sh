@@ -6,11 +6,11 @@ set -e
 # widens the window between "pod Running" and "port 8000 open".
 export PATH="/app/.venv/bin:$PATH"
 
-# LMS doesn't inject AD_SERVICE_URL. Services there follow the pattern
-# <namespace>-web.<namespace>, and the ad-service namespace differs from ours
-# only by its suffix.
+# LMS doesn't inject AD_SERVICE_URL (and localhost would be this very pod).
+# Services there follow the pattern <namespace>-web.<namespace>, and the
+# ad-service namespace differs from ours only by its suffix.
 NS_FILE=/var/run/secrets/kubernetes.io/serviceaccount/namespace
-if [ -z "${AD_SERVICE_URL:-}" ] && [ -f "$NS_FILE" ]; then
+if [ -f "$NS_FILE" ] && [[ "${AD_SERVICE_URL:-}" =~ ^(https?://(localhost|127\.0\.0\.1)(:[0-9]+)?/?)?$ ]]; then
     ad_ns="$(sed 's/search-service$/ad-service/' "$NS_FILE")"
     export AD_SERVICE_URL="http://${ad_ns}-web.${ad_ns}.svc.cluster.local:8000"
 fi
