@@ -1,6 +1,10 @@
+import logging
+
 from src.application.ports.ad_source import AdSource
 from src.application.ports.uow import UnitOfWork
 from src.application.ports.usecases import IndexAdPort
+
+logger = logging.getLogger(__name__)
 
 
 class IndexAd(IndexAdPort):
@@ -14,6 +18,7 @@ class IndexAd(IndexAdPort):
         async with self._uow:
             if snapshot is None or snapshot.status != "active":
                 await self._uow.search.delete(ad_id)
+                logger.info("ad %s is not active, removed from index", ad_id)
             else:
                 await self._uow.search.upsert(
                     ad_id=snapshot.ad_id,
@@ -23,4 +28,5 @@ class IndexAd(IndexAdPort):
                     category=snapshot.category,
                     city=snapshot.city,
                 )
+                logger.info("ad %s indexed", ad_id)
             await self._uow.commit()
